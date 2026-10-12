@@ -5,5 +5,8 @@ dist
 .env*
 !.env.example
 graphify-out
-readme.md
-AGENTS.md
+
+# Local AI/project context (kept on disk, not published)
+/README.md
+/AGENTS.md
+/docs/storyboard/
