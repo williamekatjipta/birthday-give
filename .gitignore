@@ -5,3 +5,5 @@ dist
 .env*
 !.env.example
 graphify-out
+readme.md
+AGENTS.md
