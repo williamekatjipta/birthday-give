@@ -1,10 +1,41 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import sunflowerReal from '../sunflower-real-top.svg';
+import childhoodTwo from '../biography/2th.jpeg';
+import childhoodSix from '../biography/6th.jpeg';
+import childhoodSixTwo from '../biography/6th (2).jpeg';
+import childhoodTrain from '../biography/WhatsApp Image 2026-10-12 at 21.53.46.jpeg';
+import childhoodMascot from '../biography/WhatsApp Image 2026-10-12 at 21.53.48 (1).jpeg';
+import childhoodGlasses from '../biography/WhatsApp Image 2026-10-12 at 21.53.48 (3).jpeg';
+import childhoodPark from '../biography/WhatsApp Image 2026-10-12 at 21.53.49 (1).jpeg';
+import childhoodSnoopy from '../biography/WhatsApp Image 2026-10-12 at 21.53.49 (3).jpeg';
+import withDaddy from '../biography/With daddy.jpg';
+import childhoodSong from '../biography/Still Held by Grace.mp3';
 
 const BIRTHDAY_PASSWORD = import.meta.env.VITE_BIRTHDAY_PASSWORD || '211001';
 const AUTO_UNLOCK = import.meta.env.VITE_AUTO_UNLOCK === 'true';
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'enter'];
+const BLOOM_START_DELAY = 950;
+const MESSAGE_REVEAL_DELAY = 3900;
+const CHILDHOOD_TRANSITION_DURATION = 950;
+const WISHES_TRANSITION_DURATION = 1100;
+const VIDEO_WISHES = [
+  { id: 'eva-daniel', from: 'Ce Eva & Ko Daniel', url: 'https://drive.google.com/file/d/1YSkasPls_uyRdVF-3zjppLjcZrbJcfWZ/preview' },
+  { id: 'daddy', from: 'Daddy', url: 'https://drive.google.com/file/d/1dBlrZvm5dKlpaxAtiYBey7on1dYN9TIa/preview' },
+];
+
+const CHILDHOOD_PAGES = [
+  { image: childhoodTwo, label: 'little you', narration: 'Even then, your eyes held a quiet wonder—as if the world had already given you so much to dream about.' },
+  { image: childhoodSix, label: 'tiny sunshine', narration: 'That smile was pure sunshine—the kind that could make an ordinary day feel worth remembering.' },
+  { image: childhoodSixTwo, label: 'cheeky days', narration: 'Behind that playful little look was a girl already full of stories, mischief, and heart.' },
+  { image: childhoodTrain, label: 'curious days', narration: 'Every window opened into a bigger world, and you met it with curious eyes and a brave little smile.' },
+  { image: childhoodMascot, label: 'growing up', narration: 'With every step, you grew a little braver—while keeping the softness that has always made you, you.' },
+  { image: childhoodSnoopy, label: 'little adventures', narration: 'Some memories never need a grand story—just sunshine, a silly pose, and a happiness this honest.' },
+  { image: childhoodGlasses, label: 'a little older', narration: 'Somewhere along the way, your own colors began to shine—bold, playful, and unmistakably you.', fit: 'contain' },
+  { image: childhoodPark, label: 'the you becoming you', narration: 'Beneath those wide-open skies, you were already becoming someone strong, joyful, and beautifully your own.', fit: 'contain' },
+  { image: withDaddy, label: 'with dad', narration: 'Dad may not have shown it perfectly, but in his own way, he loved you with genuine kindness and sincerity.', fit: 'contain' },
+];
 
 const FLOWERS = [
   { x: -7, y: -9, size: 25, delay: 0, rotate: -18, depth: 1 },
@@ -170,55 +201,465 @@ function Character({ compact = false, happy = false }) {
   );
 }
 
+function getFlowerViewport() {
+  if (typeof window === 'undefined') return { width: 1440, height: 900, limit: 260 };
+  const { innerWidth: width, innerHeight: height } = window;
+  const limit = width <= 540 ? 190 : width <= 1024 ? 225 : 260;
+  return { width, height, limit };
+}
+
+function halton(index, base) {
+  let fraction = 1;
+  let result = 0;
+  let value = index;
+
+  while (value > 0) {
+    fraction /= base;
+    result += fraction * (value % base);
+    value = Math.floor(value / base);
+  }
+
+  return result;
+}
+
+function selectFlowers({ width, height, limit }) {
+  const vmin = Math.min(width, height) / 100;
+  const minimumDiameter = width <= 540 ? 32 : 46;
+  const specs = Array.from({ length: limit }, (_, index) => {
+    const seed = FLOWERS[index % FLOWERS.length];
+    const size = Math.max(6, Math.min(15, seed.size * .5 + ((index * 7) % 3)));
+    return { seed, size, order: index };
+  }).sort((a, b) => b.size - a.size);
+
+  const placed = [];
+
+  specs.forEach(({ seed, size, order }) => {
+    const diameter = Math.max(minimumDiameter, size * vmin);
+    let bestCandidate = null;
+    let bestClearance = -Infinity;
+
+    for (let attempt = 0; attempt < 180; attempt += 1) {
+      const sequence = 1 + order * 193 + attempt * 17;
+      const centerX = halton(sequence, 2) * width;
+      const centerY = halton(sequence, 3) * height;
+      let clearance = Infinity;
+
+      placed.forEach((other) => {
+        const distance = Math.hypot(centerX - other.centerX, centerY - other.centerY);
+        const requiredDistance = (diameter + other.diameter) * .34;
+        clearance = Math.min(clearance, distance - requiredDistance);
+      });
+
+      if (clearance > bestClearance) {
+        bestClearance = clearance;
+        bestCandidate = { centerX, centerY };
+      }
+      if (clearance >= 0) break;
+    }
+
+    placed.push({
+      ...seed,
+      x: ((bestCandidate.centerX - diameter / 2) / width) * 100,
+      y: ((bestCandidate.centerY - diameter / 2) / height) * 100,
+      size,
+      rotate: seed.rotate + (((order * 13) % 11) - 5),
+      depth: 1 + (order % 9),
+      filler: order >= FLOWERS.length || seed.filler,
+      centerX: bestCandidate.centerX,
+      centerY: bestCandidate.centerY,
+      diameter,
+    });
+  });
+
+  return placed;
+}
+
+function useFlowerViewport() {
+  const [viewport, setViewport] = useState(getFlowerViewport);
+
+  useEffect(() => {
+    let frame;
+    const syncViewport = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setViewport(getFlowerViewport()));
+    };
+
+    window.addEventListener('resize', syncViewport, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', syncViewport);
+    };
+  }, []);
+
+  return viewport;
+}
+
 function Sunflower({ flower }) {
-  const backPetalCount = flower.filler ? 7 : 13;
-  const frontPetalCount = flower.filler ? 9 : 17;
-  const backPetals = Array.from({ length: backPetalCount }, (_, index) => index);
-  const frontPetals = Array.from({ length: frontPetalCount }, (_, index) => index);
-  const windDirection = flower.depth % 2 === 0 ? 1 : -1;
-  const windAngle = flower.rotate % 2 === 0 ? 1.8 : -1.8;
   const style = {
     '--x': `${flower.x}%`,
     '--y': `${flower.y}%`,
     '--size': `${flower.size}vmin`,
-    '--delay': `${flower.delay * .72}s`,
     '--tilt': `${flower.rotate}deg`,
     '--depth': flower.depth,
-    '--wind-duration': `${5.6 + (Math.abs(flower.x) % 7) * .37}s`,
-    '--wind-x': `${windDirection * 5}px`,
-    '--wind-x-back': `${windDirection * -2}px`,
-    '--wind-x-soft': `${windDirection * 1.5}px`,
-    '--wind-angle': `${windAngle}deg`,
-    '--wind-angle-back': `${windAngle * -.45}deg`,
-    '--wind-angle-soft': `${windAngle * .3}deg`,
   };
 
   return (
     <div className={`sunflower ${flower.filler ? 'sunflower--filler' : ''}`} style={style} aria-hidden="true">
       <div className="sunflower__head">
-        <div className="petal-ring petal-ring--back">
-          {backPetals.map((petal) => <i key={petal} style={{ '--rotation': `${petal * (360 / backPetals.length)}deg` }} />)}
-        </div>
-        <div className="petal-ring petal-ring--front">
-          {frontPetals.map((petal) => <i key={petal} style={{ '--rotation': `${petal * (360 / frontPetals.length) + 7}deg` }} />)}
-        </div>
-        <div className="sunflower__center"><span /></div>
+        <img className="sunflower__art" src={sunflowerReal} alt="" draggable="false" />
       </div>
     </div>
   );
 }
 
-function FloralScene() {
+function FloralScene({ leaving = false }) {
+  const viewport = useFlowerViewport();
+  const flowers = selectFlowers(viewport);
+  const layers = Array.from({ length: 4 }, () => []);
+  flowers.forEach((flower, index) => layers[index % layers.length].push(flower));
+
   return (
-    <div className="floral-scene" aria-hidden="true">
+    <div className={`floral-scene ${leaving ? 'floral-scene--leaving' : ''}`} aria-hidden="true">
       <div className="warm-glow" />
-      {FLOWERS.map((flower, index) => <Sunflower key={index} flower={flower} />)}
+      {layers.map((layer, layerIndex) => (
+        <div className={`flower-layer flower-layer--${layerIndex}`} key={layerIndex}>
+          <div className="flower-layer__field">
+            {layer.map((flower, flowerIndex) => (
+              <Sunflower key={`${flower.x}-${flower.y}-${flower.size}-${flowerIndex}`} flower={flower} />
+            ))}
+          </div>
+        </div>
+      ))}
       <span className="petal petal--one" />
       <span className="petal petal--two" />
       <span className="petal petal--three" />
       <span className="petal petal--four" />
       <div className="floral-vignette" />
     </div>
+  );
+}
+
+function WrittenNarration({ text }) {
+  let letterIndex = 0;
+
+  return (
+    <p className="scrapbook-narration">
+      <span className="sr-only">{text}</span>
+      <span className="writing-line" aria-hidden="true">
+        {text.split(' ').map((word, wordIndex) => (
+          <span className="writing-word" key={`${word}-${wordIndex}`}>
+            {Array.from(word).map((character, characterIndex) => {
+              const delay = .6 + letterIndex * .07;
+              letterIndex += 1;
+              return (
+                <span
+                  className="writing-character"
+                  key={`${character}-${characterIndex}`}
+                  style={{ '--letter-delay': `${delay}s` }}
+                >
+                  {character}
+                </span>
+              );
+            })}
+          </span>
+        ))}
+      </span>
+    </p>
+  );
+}
+
+function ScrapbookIntroPage({ leaving = false, onStart }) {
+  return (
+    <article className={`scrapbook-page scrapbook-intro ${leaving ? 'scrapbook-page--leave-left' : 'scrapbook-page--current'}`}>
+      <span className="scrapbook-tape scrapbook-tape--one" aria-hidden="true" />
+      <span className="scrapbook-tape scrapbook-tape--two" aria-hidden="true" />
+      <span className="scrapbook-doodle scrapbook-doodle--heart" aria-hidden="true">♡</span>
+      <span className="scrapbook-doodle scrapbook-doodle--flower" aria-hidden="true">✿</span>
+
+      <div className="scrapbook-intro__copy">
+        <span className="scrapbook-label">a note before we begin</span>
+        <h3>Hi, Jess ♡</h3>
+        <p>
+          I hope this finds you in one of the happiest moments of your life.
+        </p>
+        <p>
+          I made this little place for you—to look back and see how beautifully you have grown.
+        </p>
+        <button className="lookback-button" type="button" onClick={onStart}>
+          Look back with me <span>♡</span>
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function ScrapbookPage({ page, state = 'current', direction = 1, isFinal = false, onContinue }) {
+  const isPortrait = page.fit === 'contain';
+  const motionClass = state === 'current'
+    ? 'scrapbook-page--current'
+    : state === 'leaving'
+      ? `scrapbook-page--leave-${direction > 0 ? 'left' : 'right'}`
+      : `scrapbook-page--enter-${direction > 0 ? 'right' : 'left'}`;
+
+  return (
+    <article className={`scrapbook-page ${motionClass} ${isPortrait ? 'scrapbook-page--portrait' : ''} ${isFinal ? 'scrapbook-page--final' : ''}`}>
+      <span className="scrapbook-tape scrapbook-tape--one" aria-hidden="true" />
+      <span className="scrapbook-tape scrapbook-tape--two" aria-hidden="true" />
+      <span className="scrapbook-doodle scrapbook-doodle--heart" aria-hidden="true">♡</span>
+      <span className="scrapbook-doodle scrapbook-doodle--flower" aria-hidden="true">✿</span>
+
+      <figure className={`scrapbook-photo ${page.fit === 'contain' ? 'scrapbook-photo--contain' : ''}`}>
+        <img src={page.image} alt="A childhood memory" draggable="false" decoding="async" />
+      </figure>
+
+      <div className="scrapbook-copy">
+        <span className="scrapbook-label">{page.label}</span>
+        <WrittenNarration text={page.narration} />
+        <span className="scrapbook-note" aria-hidden="true">a little memory, kept with love</span>
+        {isFinal && (
+          <button className="scrapbook-continue" type="button" onClick={onContinue}>
+            one more surprise <span>→</span>
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ChildhoodSection({ entering = false, leaving = false, audioRef, songDuration = 94, onContinue }) {
+  const [pageIndex, setPageIndex] = useState(0);
+  const [transition, setTransition] = useState(null);
+  const [autoplay, setAutoplay] = useState(true);
+  const [hasStartedLookback, setHasStartedLookback] = useState(false);
+  const [introLeaving, setIntroLeaving] = useState(false);
+  const [slideshowStartTime, setSlideshowStartTime] = useState(0);
+  const transitionTimer = useRef(null);
+  const introTimer = useRef(null);
+  const touchStart = useRef(null);
+
+  const changePage = (nextIndex, direction, isManual = true) => {
+    if (transition || nextIndex === pageIndex) return;
+    if (isManual) setAutoplay(false);
+    setTransition({ from: pageIndex, to: nextIndex, direction });
+    setPageIndex(nextIndex);
+    transitionTimer.current = window.setTimeout(() => setTransition(null), 1230);
+  };
+
+  const movePage = (step, isManual = true) => {
+    const nextIndex = (pageIndex + step + CHILDHOOD_PAGES.length) % CHILDHOOD_PAGES.length;
+    changePage(nextIndex, step, isManual);
+  };
+
+  useEffect(() => {
+    CHILDHOOD_PAGES.forEach((page) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = page.image;
+      image.decode?.().catch(() => undefined);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!hasStartedLookback || !autoplay || transition || entering || pageIndex >= CHILDHOOD_PAGES.length - 1) return undefined;
+    const segmentDuration = ((songDuration - slideshowStartTime) * 1000) / CHILDHOOD_PAGES.length;
+    const currentTime = Math.max(0, (audioRef.current?.currentTime || 0) - slideshowStartTime) * 1000;
+    const nextBoundary = (pageIndex + 1) * segmentDuration;
+    const timer = window.setTimeout(() => movePage(1, false), Math.max(250, nextBoundary - currentTime));
+    return () => window.clearTimeout(timer);
+  }, [audioRef, autoplay, entering, hasStartedLookback, pageIndex, slideshowStartTime, songDuration, transition]);
+
+  useEffect(() => () => {
+    window.clearTimeout(transitionTimer.current);
+    window.clearTimeout(introTimer.current);
+  }, []);
+
+  const beginLookback = () => {
+    if (introLeaving) return;
+    let startTime = audioRef.current?.currentTime || 0;
+    const minimumSlideshowTime = CHILDHOOD_PAGES.length * 6;
+
+    if (songDuration - startTime < minimumSlideshowTime && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => undefined);
+      startTime = 0;
+    }
+
+    setSlideshowStartTime(startTime);
+    setIntroLeaving(true);
+    introTimer.current = window.setTimeout(() => {
+      setHasStartedLookback(true);
+      setIntroLeaving(false);
+    }, 1230);
+  };
+
+  const handleTouchStart = (event) => {
+    if (!hasStartedLookback) return;
+    touchStart.current = event.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (!hasStartedLookback) return;
+    if (touchStart.current === null) return;
+    const distance = event.changedTouches[0].clientX - touchStart.current;
+    touchStart.current = null;
+    if (Math.abs(distance) < 45) return;
+    movePage(distance < 0 ? 1 : -1);
+  };
+
+  const visiblePages = transition
+    ? [
+        { index: transition.from, state: 'leaving', direction: transition.direction },
+        { index: transition.to, state: 'entering', direction: transition.direction },
+      ]
+    : [{ index: pageIndex, state: 'current', direction: 1 }];
+  const renderedPhotoPages = hasStartedLookback
+    ? visiblePages
+    : introLeaving
+      ? [{ index: 0, state: 'entering', direction: 1 }]
+      : [];
+
+  return (
+    <section className={`childhood-section ${entering ? 'childhood-section--entering' : ''} ${leaving ? 'childhood-section--leaving' : ''}`} aria-label="Childhood memories">
+      <div className="childhood-heading">
+        <span>chapter one</span>
+        <h2>Little pieces of you</h2>
+      </div>
+
+      <div className="scrapbook-shell" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <div className="scrapbook-stage">
+          {!hasStartedLookback && <ScrapbookIntroPage leaving={introLeaving} onStart={beginLookback} />}
+          {renderedPhotoPages.map(({ index, state, direction }) => (
+            <ScrapbookPage
+              key={`childhood-page-${index}`}
+              page={CHILDHOOD_PAGES[index]}
+              state={state}
+              direction={direction}
+              isFinal={index === CHILDHOOD_PAGES.length - 1}
+              onContinue={onContinue}
+            />
+          ))}
+        </div>
+
+        <div className={`scrapbook-controls ${!hasStartedLookback ? 'scrapbook-controls--hidden' : ''}`} aria-hidden={!hasStartedLookback || undefined}>
+          <button type="button" onClick={() => movePage(-1)} aria-label="Previous memory" disabled={!hasStartedLookback}>← <span>prev</span></button>
+          <div className="scrapbook-progress" aria-label={`Memory ${pageIndex + 1} of ${CHILDHOOD_PAGES.length}`}>
+            {CHILDHOOD_PAGES.map((page, index) => (
+              <button
+                type="button"
+                className={index === pageIndex ? 'is-active' : ''}
+                key={page.label}
+                onClick={() => changePage(index, index > pageIndex ? 1 : -1)}
+                aria-label={`Open ${page.label}`}
+                aria-current={index === pageIndex ? 'true' : undefined}
+                disabled={!hasStartedLookback}
+              />
+            ))}
+          </div>
+          <button type="button" onClick={() => movePage(1)} aria-label="Next memory" disabled={!hasStartedLookback}><span>next</span> →</button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WishSection({ entering = false }) {
+  const [phase, setPhase] = useState('resting');
+  const [activeWishId, setActiveWishId] = useState(null);
+  const closeTimer = useRef(null);
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+  const focusEnvelope = (wishId) => {
+    if (phase !== 'resting') return;
+    setActiveWishId(wishId);
+    setPhase('focused');
+  };
+
+  const openEnvelope = () => {
+    if (phase === 'focused') setPhase('open');
+  };
+
+  const closeCard = () => {
+    if (phase !== 'open') return;
+    setPhase('closing');
+    closeTimer.current = window.setTimeout(() => {
+      setPhase('resting');
+      setActiveWishId(null);
+    }, 850);
+  };
+
+  const activeWish = VIDEO_WISHES.find((wish) => wish.id === activeWishId);
+  const isCardVisible = phase === 'open' || phase === 'closing';
+  const isPlayerOpen = phase === 'open';
+
+  return (
+    <section className={`wish-section ${entering ? 'wish-section--entering' : ''}`} aria-label="A video wish">
+      <div className="wish-section__heading">
+        <span>chapter two</span>
+        <h2>Some people left these for you</h2>
+      </div>
+
+      <div className={`envelope-moment envelope-moment--${phase}`}>
+        <div className={`envelope-list ${activeWish ? 'envelope-list--active' : ''}`}>
+          {VIDEO_WISHES.map((wish) => {
+            const isSelected = wish.id === activeWishId;
+
+            return (
+              <div className={`envelope-shell ${isSelected ? 'envelope-shell--selected' : ''}`} key={wish.id}>
+                <div className="envelope-back" aria-hidden="true" />
+
+                <button
+                  className="envelope-front"
+                  type="button"
+                  onClick={() => focusEnvelope(wish.id)}
+                  disabled={phase !== 'resting'}
+                  aria-label={`Bring the envelope from ${wish.from} closer`}
+                >
+                  <span>from: {wish.from}</span>
+                </button>
+
+                <button
+                  className="envelope-flap"
+                  type="button"
+                  onClick={openEnvelope}
+                  disabled={!isSelected || phase !== 'focused'}
+                  aria-label={`Open the envelope from ${wish.from}`}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {activeWish && (
+          <article className="wish-card" aria-hidden={!isCardVisible}>
+            <button className="wish-card__close" type="button" onClick={closeCard} aria-label="Close video wish" tabIndex={isPlayerOpen ? 0 : -1}>×</button>
+            <div className="wish-card__header">
+              <span>a little wish from {activeWish.from}</span>
+              <strong>Press play ♡</strong>
+            </div>
+            <div className="wish-card__video">
+              {isPlayerOpen && (
+                <iframe
+                  src={activeWish.url}
+                  title={`Video wish from ${activeWish.from}`}
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
+            </div>
+            {isPlayerOpen && (
+              <a className="wish-card__fallback" href={activeWish.url} target="_blank" rel="noreferrer">
+                video not playing? open it directly ↗
+              </a>
+            )}
+          </article>
+        )}
+
+        <p className="envelope-hint" aria-live="polite">
+          {phase === 'resting' ? 'choose an envelope' : phase === 'focused' ? 'tap flap to open' : '\u00a0'}
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -236,8 +677,10 @@ function App() {
   const [scene, setScene] = useState('intro');
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [songDuration, setSongDuration] = useState(94);
   const errorTimer = useRef(null);
+  const sectionTimer = useRef(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setScene('password'), 2100);
@@ -258,8 +701,8 @@ function App() {
           window.clearInterval(typingTimer);
           window.setTimeout(() => {
             setScene('success');
-            window.setTimeout(() => setScene('bloom'), 950);
-            window.setTimeout(() => setScene('final'), 5450);
+            window.setTimeout(() => setScene('bloom'), BLOOM_START_DELAY);
+            window.setTimeout(() => setScene('final'), MESSAGE_REVEAL_DELAY);
           }, 220);
         }
       }, 115);
@@ -271,14 +714,17 @@ function App() {
     };
   }, [scene]);
 
-  useEffect(() => () => window.clearTimeout(errorTimer.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(errorTimer.current);
+    window.clearTimeout(sectionTimer.current);
+  }, []);
 
   const validate = (candidate) => {
     if (candidate.length !== BIRTHDAY_PASSWORD.length) return;
     if (candidate === BIRTHDAY_PASSWORD) {
       setScene('success');
-      window.setTimeout(() => setScene('bloom'), 950);
-      window.setTimeout(() => setScene('final'), 5450);
+      window.setTimeout(() => setScene('bloom'), BLOOM_START_DELAY);
+      window.setTimeout(() => setScene('final'), MESSAGE_REVEAL_DELAY);
       return;
     }
     setError(true);
@@ -307,11 +753,42 @@ function App() {
   };
 
   const handleStart = () => {
-    setNotice('The next chapter is coming soon ♡');
-    window.setTimeout(() => setNotice(''), 2600);
+    if (scene !== 'final') return;
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = .58;
+      audioRef.current.play().catch(() => undefined);
+    }
+    setScene('to-childhood');
+    sectionTimer.current = window.setTimeout(() => setScene('childhood'), CHILDHOOD_TRANSITION_DURATION);
   };
 
-  const isFloral = scene === 'bloom' || scene === 'final';
+  const handleContinueToWishes = () => {
+    if (scene !== 'childhood') return;
+
+    if (audioRef.current && !audioRef.current.paused) {
+      const startVolume = audioRef.current.volume;
+      const fadeStartedAt = performance.now();
+      const fadeAudio = (time) => {
+        const progress = Math.min(1, (time - fadeStartedAt) / WISHES_TRANSITION_DURATION);
+        audioRef.current.volume = startVolume * (1 - progress);
+        if (progress < 1) {
+          window.requestAnimationFrame(fadeAudio);
+        } else {
+          audioRef.current.pause();
+          audioRef.current.volume = .58;
+        }
+      };
+      window.requestAnimationFrame(fadeAudio);
+    }
+
+    setScene('to-wishes');
+    sectionTimer.current = window.setTimeout(() => setScene('wishes'), WISHES_TRANSITION_DURATION);
+  };
+
+  const isFloral = scene === 'bloom' || scene === 'final' || scene === 'to-childhood';
+  const isChildhood = scene === 'to-childhood' || scene === 'childhood' || scene === 'to-wishes';
+  const isWishes = scene === 'to-wishes' || scene === 'wishes';
 
   return (
     <main className={`app app--${scene}`}>
@@ -347,16 +824,35 @@ function App() {
         </section>
       )}
 
-      {isFloral && <FloralScene />}
+      {isChildhood && (
+        <ChildhoodSection
+          entering={scene === 'to-childhood'}
+          leaving={isWishes}
+          audioRef={audioRef}
+          songDuration={songDuration}
+          onContinue={handleContinueToWishes}
+        />
+      )}
 
-      {scene === 'final' && (
-        <section className="message-card">
+      {isWishes && <WishSection entering={scene === 'to-wishes'} />}
+
+      {isFloral && <FloralScene leaving={scene === 'to-childhood'} />}
+
+      {(scene === 'final' || scene === 'to-childhood') && (
+        <section className={`message-card ${scene === 'to-childhood' ? 'message-card--leaving' : ''}`}>
           <span className="message-card__kicker">for you, today</span>
           <h1>On your special day,<br />there is something<br />I want to show you.</h1>
           <button className="start-button" type="button" onClick={handleStart}>Start <span>→</span></button>
-          <p className={`notice ${notice ? 'notice--visible' : ''}`} role="status">{notice}</p>
         </section>
       )}
+
+      <audio
+        ref={audioRef}
+        src={childhoodSong}
+        preload="metadata"
+        playsInline
+        onLoadedMetadata={(event) => setSongDuration(event.currentTarget.duration || 94)}
+      />
     </main>
   );
 }
