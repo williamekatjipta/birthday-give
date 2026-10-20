@@ -964,6 +964,7 @@ function App() {
   const audioRef = useRef(null);
   const memoryAudioRef = useRef(null);
   const memoryAudioFadeFrame = useRef(null);
+  const memoryAudioEndedRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setScene('password'), 2100);
@@ -1075,6 +1076,7 @@ function App() {
     if (!audio) return;
     if (!audio.paused) return;
 
+    memoryAudioEndedRef.current = false;
     window.cancelAnimationFrame(memoryAudioFadeFrame.current);
     audio.currentTime = 0;
     audio.volume = 0;
@@ -1104,6 +1106,8 @@ function App() {
   };
 
   const handleMemoryAudioEnded = () => {
+    if (memoryAudioEndedRef.current) return;
+    memoryAudioEndedRef.current = true;
     window.cancelAnimationFrame(memoryAudioFadeFrame.current);
     if (memoryAudioRef.current) {
       memoryAudioRef.current.pause();
@@ -1209,6 +1213,12 @@ function App() {
         preload="auto"
         playsInline
         onEnded={handleMemoryAudioEnded}
+        onTimeUpdate={(event) => {
+          const audio = event.currentTarget;
+          if (Number.isFinite(audio.duration) && audio.duration > 0 && audio.currentTime >= audio.duration - 0.15) {
+            handleMemoryAudioEnded();
+          }
+        }}
       >
         <source src={memorySong} type="audio/mpeg" />
       </audio>
