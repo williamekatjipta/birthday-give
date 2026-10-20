@@ -11,7 +11,21 @@ import childhoodGlasses from '../biography/WhatsApp Image 2026-10-12 at 21.53.48
 import childhoodPark from '../biography/WhatsApp Image 2026-10-12 at 21.53.49 (1).jpeg';
 import childhoodSnoopy from '../biography/WhatsApp Image 2026-10-12 at 21.53.49 (3).jpeg';
 import withDaddy from '../biography/With daddy.jpg';
+import withMommy from '../biography/with mommy.jpeg';
+import withSister from '../biography/with sister.jpeg';
+import withSisterGrown from '../biography/with sister grown.jpeg';
+import birthdayTwentyFive from '../biography/25 birthday.jpeg';
 import childhoodSong from '../biography/Still Held by Grace.mp3';
+import wishEvaDaniel from '../wish/WhatsApp Video 2026-10-09 at 12.38.27.mp4';
+import wishDaddy from '../wish/WhatsApp Video 2026-10-15 at 16.18.25.mp4';
+import wishFeli from '../wish/sister.mp4';
+import wishEllen from '../wish/ellen.mp4';
+import wishMamaPapa from '../wish/mama & papa.mp4';
+import wishAni from '../wish/ani.mp4';
+import wishJesNat from '../wish/JesNat.mp4';
+import memorySong from '../withMe/web/backsound.mp3';
+
+const memoryImageModules = import.meta.glob('../withMe/web/*.{jpg,jpeg,png,webp}', { eager: true, import: 'default' });
 
 const BIRTHDAY_PASSWORD = import.meta.env.VITE_BIRTHDAY_PASSWORD || '211001';
 const AUTO_UNLOCK = import.meta.env.VITE_AUTO_UNLOCK === 'true';
@@ -20,21 +34,52 @@ const BLOOM_START_DELAY = 950;
 const MESSAGE_REVEAL_DELAY = 3900;
 const CHILDHOOD_TRANSITION_DURATION = 950;
 const WISHES_TRANSITION_DURATION = 1100;
+const MEMORIES_TRANSITION_DURATION = 2200;
+const CLOSING_TRANSITION_DURATION = 1050;
 const VIDEO_WISHES = [
-  { id: 'eva-daniel', from: 'Ce Eva & Ko Daniel', url: 'https://drive.google.com/file/d/1YSkasPls_uyRdVF-3zjppLjcZrbJcfWZ/preview' },
-  { id: 'daddy', from: 'Daddy', url: 'https://drive.google.com/file/d/1dBlrZvm5dKlpaxAtiYBey7on1dYN9TIa/preview' },
+  { id: 'eva-daniel', from: 'Ce Eva & Ko Daniel', src: wishEvaDaniel },
+  { id: 'daddy', from: 'Daddy', src: wishDaddy },
+  { id: 'feli', from: 'Feli', src: wishFeli },
+  { id: 'ellen', from: 'Ellen', src: wishEllen },
+  { id: 'mama-papa', from: 'Mama & Papa', src: wishMamaPapa },
+  { id: 'ani', from: 'Ani', src: wishAni },
+  { id: 'jes-nat', from: 'JesNat', src: wishJesNat },
 ];
 
+const MEMORY_CAPTIONS = [
+  'aku suka semua versi kita',
+  'kalau ada kamu, momen biasa pun terasa beda',
+  'hal-hal kecil yang selalu aku simpan',
+  'versi kita yang ini lucu banget',
+  'semuanya terasa lebih hangat kalau ada kamu',
+];
+const MEMORY_OUTRO_CAPTION = 'dan aku masih ingin membuat banyak kenangan lagi sama kamu';
+
+const MEMORY_PHOTOS = Object.entries(memoryImageModules)
+  .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
+  .map(([path, image], index) => ({
+    id: path.split('/').pop(),
+    image,
+    alt: `A memory of us ${index + 1}`,
+    highlight: index % 8 === 2,
+    caption: MEMORY_CAPTIONS[Math.floor(index / 8) % MEMORY_CAPTIONS.length],
+  }));
+
 const CHILDHOOD_PAGES = [
-  { image: childhoodTwo, label: 'little you', narration: 'Even then, your eyes held a quiet wonder—as if the world had already given you so much to dream about.' },
-  { image: childhoodSix, label: 'tiny sunshine', narration: 'That smile was pure sunshine—the kind that could make an ordinary day feel worth remembering.' },
-  { image: childhoodSixTwo, label: 'cheeky days', narration: 'Behind that playful little look was a girl already full of stories, mischief, and heart.' },
-  { image: childhoodTrain, label: 'curious days', narration: 'Every window opened into a bigger world, and you met it with curious eyes and a brave little smile.' },
-  { image: childhoodMascot, label: 'growing up', narration: 'With every step, you grew a little braver—while keeping the softness that has always made you, you.' },
-  { image: childhoodSnoopy, label: 'little adventures', narration: 'Some memories never need a grand story—just sunshine, a silly pose, and a happiness this honest.' },
-  { image: childhoodGlasses, label: 'a little older', narration: 'Somewhere along the way, your own colors began to shine—bold, playful, and unmistakably you.', fit: 'contain' },
-  { image: childhoodPark, label: 'the you becoming you', narration: 'Beneath those wide-open skies, you were already becoming someone strong, joyful, and beautifully your own.', fit: 'contain' },
-  { image: withDaddy, label: 'with dad', narration: 'Dad may not have shown it perfectly, but in his own way, he loved you with genuine kindness and sincerity.', fit: 'contain' },
+  { image: childhoodTwo, label: 'little you', narration: 'Ini dia, anak pertama, putri pertama dan cinta pertama, dan kebahagiaan terbesar dari keluargamu' },
+  { image: childhoodSix, label: 'a cute nose', narration: 'Dulu lucu yaa ternyataaa.. dan hidung kecilnya ternyata dari dulu kek gitu 😝' },
+  { image: childhoodSixTwo, label: 'pinky girl', narration: 'Everything is pink, but say no to yellow.' },
+  { image: childhoodTrain, label: 'bring happiness', narration: 'Kamu itu selalu bisa membawa aura positive dan kebahagiaan ke semua orang.' },
+  { image: childhoodMascot, label: 'hokben lovers', narration: 'hmmm, dari dulu sampe sekarang hokben mulu kek daddy 🤭' },
+  { image: childhoodSnoopy, label: 'little adventures', narration: 'Perjalanan hidupmu penuh dengan kenangan walaupun gak mudah...' },
+  { image: childhoodPark, label: 'the you becoming you', narration: 'Mungkin dulu kamu merasa bingung dengan keadaanmu...', fit: 'contain' },
+  { image: childhoodGlasses, label: 'a little older', narration: 'Tapi, semakin besar, semua yang kamu lewati perlahan membentukmu jadi pribadi yang lebih kuat.', fit: 'contain' },
+  { image: withSister, label: 'sisters, from the start', narration: 'Tapi ingeten yaa, kamu gak sendirian kok...', fit: 'contain' },
+  { image: withSisterGrown, label: 'still side by side', narration: 'Walaupun banyak perubahan kondisi, ada keluarga yang selalu ada.', fit: 'contain' },
+  { image: withDaddy, label: 'with dad', narration: 'Dan, mereka sayang sama kamu dengan cara yang berbeda beda', fit: 'contain' },
+  { image: withMommy, label: 'with mom', narration: 'Mereka selalu jaga kamu walaupun tidak secara fisik.', fit: 'contain' },
+
+  { image: birthdayTwentyFive, label: 'twenty-five looks beautiful on you', narration: 'And here you are at twenty-five, still carrying every version of yourself, only brighter, braver, and more beautiful than ever.', fit: 'focus' },
 ];
 
 const FLOWERS = [
@@ -408,7 +453,7 @@ function ScrapbookPage({ page, state = 'current', direction = 1, isFinal = false
       <span className="scrapbook-doodle scrapbook-doodle--heart" aria-hidden="true">♡</span>
       <span className="scrapbook-doodle scrapbook-doodle--flower" aria-hidden="true">✿</span>
 
-      <figure className={`scrapbook-photo ${page.fit === 'contain' ? 'scrapbook-photo--contain' : ''}`}>
+      <figure className={`scrapbook-photo ${page.fit ? `scrapbook-photo--${page.fit}` : ''}`}>
         <img src={page.image} alt="A childhood memory" draggable="false" decoding="async" />
       </figure>
 
@@ -418,7 +463,17 @@ function ScrapbookPage({ page, state = 'current', direction = 1, isFinal = false
         <span className="scrapbook-note" aria-hidden="true">a little memory, kept with love</span>
         {isFinal && (
           <button className="scrapbook-continue" type="button" onClick={onContinue}>
-            one more surprise <span>→</span>
+            <span className="scrapbook-continue__copy">
+              <small>chapter two</small>
+              <strong>All the Love Around You</strong>
+            </span>
+            <span className="scrapbook-continue__arrow" aria-hidden="true">
+              <svg viewBox="0 0 32 32" focusable="false">
+                <circle cx="7" cy="16" r="1.5" />
+                <path d="M9 16h15" />
+                <path d="m18.5 9.5 6.5 6.5-6.5 6.5" />
+              </svg>
+            </span>
           </button>
         )}
       </div>
@@ -500,6 +555,10 @@ function ChildhoodSection({ entering = false, leaving = false, audioRef, songDur
   const handleTouchEnd = (event) => {
     if (!hasStartedLookback) return;
     if (touchStart.current === null) return;
+    if (event.target.closest('button, a')) {
+      touchStart.current = null;
+      return;
+    }
     const distance = event.changedTouches[0].clientX - touchStart.current;
     touchStart.current = null;
     if (Math.abs(distance) < 45) return;
@@ -562,7 +621,188 @@ function ChildhoodSection({ entering = false, leaving = false, audioRef, songDur
   );
 }
 
-function WishSection({ entering = false }) {
+function FilmStripLoop({ photos, variant = 'main', duplicate = false, activePhotoId = null }) {
+  return (
+    <div className="film-strip__loop" aria-hidden={duplicate || undefined}>
+      {photos.map((photo, index) => (
+        <figure
+          className={`film-frame ${photo.highlight ? 'film-frame--highlight' : ''} ${photo.id === activePhotoId ? 'film-frame--active' : ''}`}
+          data-photo-id={photo.id}
+          data-caption={photo.caption || ''}
+          data-highlight={photo.highlight || undefined}
+          key={`${variant}-${duplicate ? 'duplicate' : 'original'}-${photo.id}`}
+        >
+          <img
+            src={photo.image}
+            alt={duplicate ? '' : photo.alt}
+            loading={index < 6 ? 'eager' : 'lazy'}
+            decoding="async"
+            draggable="false"
+          />
+        </figure>
+      ))}
+    </div>
+  );
+}
+
+function MemoryFilmSection({ entering = false, leaving = false, onContinue }) {
+  const [manuallyPaused, setManuallyPaused] = useState(false);
+  const [isOutro, setIsOutro] = useState(false);
+  const [activePhotoId, setActivePhotoId] = useState(null);
+  const [activeCaption, setActiveCaption] = useState(MEMORY_CAPTIONS[0]);
+  const mainStripRef = useRef(null);
+  const mainTrackRef = useRef(null);
+  const highlightTimer = useRef(null);
+  const outroTimer = useRef(null);
+  const rateAnimationFrame = useRef(null);
+  const currentPlaybackRate = useRef(1);
+  const lastHighlightId = useRef(null);
+  const secondaryPhotos = MEMORY_PHOTOS.filter((_, index) => index % 3 === 0);
+  const paused = manuallyPaused;
+
+  const easeMainStripRate = (targetRate, duration = 400) => {
+    const scrollAnimation = mainTrackRef.current?.getAnimations()
+      .find((animation) => animation.animationName === 'memory-strip-scroll');
+    if (!scrollAnimation) return;
+
+    window.cancelAnimationFrame(rateAnimationFrame.current);
+    const startRate = currentPlaybackRate.current;
+    const startedAt = performance.now();
+
+    const updateRate = (now) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const easedProgress = 1 - ((1 - progress) ** 3);
+      const nextRate = startRate + ((targetRate - startRate) * easedProgress);
+
+      if (typeof scrollAnimation.updatePlaybackRate === 'function') scrollAnimation.updatePlaybackRate(nextRate);
+      else scrollAnimation.playbackRate = nextRate;
+      currentPlaybackRate.current = nextRate;
+
+      if (progress < 1) rateAnimationFrame.current = window.requestAnimationFrame(updateRate);
+    };
+
+    rateAnimationFrame.current = window.requestAnimationFrame(updateRate);
+  };
+
+  useEffect(() => {
+    const strip = mainStripRef.current;
+    if (!strip || !('IntersectionObserver' in window)) return undefined;
+
+    const observer = new IntersectionObserver((entries) => {
+      const centeredFrame = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((left, right) => Math.abs(left.boundingClientRect.left + left.boundingClientRect.width / 2 - window.innerWidth / 2)
+          - Math.abs(right.boundingClientRect.left + right.boundingClientRect.width / 2 - window.innerWidth / 2))[0];
+
+      if (!centeredFrame) return;
+      const photoId = centeredFrame.target.dataset.photoId;
+      if (!photoId || lastHighlightId.current === photoId) return;
+
+      lastHighlightId.current = photoId;
+      setActivePhotoId(photoId);
+      setActiveCaption(centeredFrame.target.dataset.caption || MEMORY_CAPTIONS[0]);
+      easeMainStripRate(.42, 400);
+      window.clearTimeout(highlightTimer.current);
+      highlightTimer.current = window.setTimeout(() => easeMainStripRate(1, 600), 2100);
+    }, {
+      root: strip,
+      rootMargin: '0px -42% 0px -42%',
+      threshold: .12,
+    });
+
+    strip.querySelectorAll('.film-frame--highlight').forEach((frame) => observer.observe(frame));
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(highlightTimer.current);
+      window.cancelAnimationFrame(rateAnimationFrame.current);
+    };
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(outroTimer.current), []);
+
+  const toggleManualPause = () => setManuallyPaused((current) => !current);
+
+  const handleStripTap = (event) => {
+    if (!event.target.closest('.film-frame')) return;
+    toggleManualPause();
+  };
+
+  const handleStripKeyDown = (event) => {
+    if (event.key !== ' ' && event.key !== 'Enter') return;
+    event.preventDefault();
+    toggleManualPause();
+  };
+
+  const handleContinue = () => {
+    if (isOutro) return;
+    setIsOutro(true);
+    setActivePhotoId(null);
+    setActiveCaption(MEMORY_OUTRO_CAPTION);
+    easeMainStripRate(.62, 600);
+    outroTimer.current = window.setTimeout(onContinue, 900);
+  };
+
+  return (
+    <section className={`memory-film-section ${entering ? 'memory-film-section--entering' : ''} ${isOutro ? 'memory-film-section--outro' : ''} ${leaving ? 'memory-film-section--leaving' : ''}`} aria-label="Our memories together">
+      <div className="memory-film-heading">
+        <span>chapter three</span>
+        <h2>Right Here, Beside You</h2>
+        <p>Dan di antara semua cerita itu...<br /><strong>aku juga punya banyak kenangan tentang kita.</strong></p>
+      </div>
+
+      <div className={`film-strip film-strip--secondary ${paused ? 'film-strip--paused' : ''}`} aria-hidden="true">
+        <div className="film-strip__track">
+          <FilmStripLoop photos={secondaryPhotos} variant="secondary" duplicate />
+          <FilmStripLoop photos={secondaryPhotos} variant="secondary" duplicate />
+        </div>
+      </div>
+
+      <div
+        className={`film-strip film-strip--main ${paused ? 'film-strip--paused' : ''}`}
+        ref={mainStripRef}
+        role="region"
+        tabIndex="0"
+        aria-label="Memory film strip. Tap or press Enter to pause and continue."
+        onClick={handleStripTap}
+        onKeyDown={handleStripKeyDown}
+      >
+        <div className="film-strip__track" ref={mainTrackRef}>
+          <FilmStripLoop photos={MEMORY_PHOTOS} activePhotoId={activePhotoId} />
+          <FilmStripLoop photos={MEMORY_PHOTOS} activePhotoId={activePhotoId} duplicate />
+        </div>
+      </div>
+
+      <div className="memory-film-footer">
+        <p key={activeCaption} aria-live="polite">{activeCaption}</p>
+        <div className="memory-film-actions">
+          <button className="memory-film-next" type="button" onClick={handleContinue} disabled={isOutro}>
+            {isOutro ? 'sebentar ya...' : 'one last page'} <span aria-hidden="true">{isOutro ? '♡' : '→'}</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ClosingLetterSection({ entering = false }) {
+  return (
+    <section className={`closing-letter-section ${entering ? 'closing-letter-section--entering' : ''}`} aria-label="A final letter for you">
+      <div className="closing-letter-card">
+        <span>epilogue</span>
+        <h2>Always, Beside You</h2>
+        <div className="closing-letter-copy">
+          <p>I’m so grateful that our paths crossed, that I’ve gotten to know you, and that I get to have you in my life.</p>
+          <p>Even with your fiery little moments and the times you sulk, that’s simply you—and I cherish every part of you.</p>
+          <p>You’ve already been through so much, and you’ve made it through with more strength and grace than you probably realize.</p>
+          <p>There will be more uncertain days ahead, but please remember: you never have to face them alone. I’ll keep doing my very best to be right there beside you, through all of it.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WishSection({ entering = false, leaving = false, onContinue }) {
   const [phase, setPhase] = useState('resting');
   const [activeWishId, setActiveWishId] = useState(null);
   const closeTimer = useRef(null);
@@ -593,7 +833,7 @@ function WishSection({ entering = false }) {
   const isPlayerOpen = phase === 'open';
 
   return (
-    <section className={`wish-section ${entering ? 'wish-section--entering' : ''}`} aria-label="A video wish">
+    <section className={`wish-section ${entering ? 'wish-section--entering' : ''} ${leaving ? 'wish-section--leaving' : ''}`} aria-label="A video wish">
       <div className="wish-section__heading">
         <span>chapter two</span>
         <h2>Some people left these for you</h2>
@@ -639,25 +879,46 @@ function WishSection({ entering = false }) {
             </div>
             <div className="wish-card__video">
               {isPlayerOpen && (
-                <iframe
-                  src={activeWish.url}
-                  title={`Video wish from ${activeWish.from}`}
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
+                <video
+                  src={activeWish.src}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  aria-label={`Video wish from ${activeWish.from}`}
                 />
               )}
             </div>
             {isPlayerOpen && (
-              <a className="wish-card__fallback" href={activeWish.url} target="_blank" rel="noreferrer">
+              <a className="wish-card__fallback" href={activeWish.src} target="_blank" rel="noreferrer">
                 video not playing? open it directly ↗
               </a>
             )}
           </article>
         )}
 
-        <p className="envelope-hint" aria-live="polite">
-          {phase === 'resting' ? 'choose an envelope' : phase === 'focused' ? 'tap flap to open' : '\u00a0'}
-        </p>
+        <div className="wish-footer">
+          <p className="envelope-hint" aria-live="polite">
+            {phase === 'resting' ? 'choose an envelope' : phase === 'focused' ? 'tap flap to open' : '\u00a0'}
+          </p>
+          <button
+            className="wish-continue"
+            type="button"
+            onClick={onContinue}
+            disabled={phase !== 'resting'}
+          >
+            <span className="wish-continue__copy">
+              <small>chapter three</small>
+              <strong>Right Here, Beside You</strong>
+            </span>
+            <span className="wish-continue__arrow" aria-hidden="true">
+              <svg viewBox="0 0 32 32" focusable="false">
+                <circle cx="7" cy="16" r="1.5" />
+                <path d="M9 16h15" />
+                <path d="m18.5 9.5 6.5 6.5-6.5 6.5" />
+              </svg>
+            </span>
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -681,6 +942,8 @@ function App() {
   const errorTimer = useRef(null);
   const sectionTimer = useRef(null);
   const audioRef = useRef(null);
+  const memoryAudioRef = useRef(null);
+  const memoryAudioFadeFrame = useRef(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setScene('password'), 2100);
@@ -717,6 +980,7 @@ function App() {
   useEffect(() => () => {
     window.clearTimeout(errorTimer.current);
     window.clearTimeout(sectionTimer.current);
+    window.cancelAnimationFrame(memoryAudioFadeFrame.current);
   }, []);
 
   const validate = (candidate) => {
@@ -786,9 +1050,50 @@ function App() {
     sectionTimer.current = window.setTimeout(() => setScene('wishes'), WISHES_TRANSITION_DURATION);
   };
 
+  const startMemoryAudio = () => {
+    const audio = memoryAudioRef.current;
+    if (!audio) return;
+    if (!audio.paused) return;
+
+    window.cancelAnimationFrame(memoryAudioFadeFrame.current);
+    audio.currentTime = 0;
+    audio.volume = 0;
+    audio.play()
+      .then(() => {
+        const targetVolume = .42;
+        const fadeStartedAt = performance.now();
+        const fadeIn = (time) => {
+          const progress = Math.min(1, (time - fadeStartedAt) / 1800);
+          audio.volume = targetVolume * (1 - ((1 - progress) ** 3));
+          if (progress < 1) memoryAudioFadeFrame.current = window.requestAnimationFrame(fadeIn);
+        };
+        memoryAudioFadeFrame.current = window.requestAnimationFrame(fadeIn);
+      })
+      .catch((error) => {
+        console.warn('Memory soundtrack could not start yet:', error.name);
+      });
+  };
+
+  const handleContinueToMemories = () => {
+    if (scene !== 'wishes') return;
+
+    startMemoryAudio();
+
+    setScene('to-memories');
+    sectionTimer.current = window.setTimeout(() => setScene('memories'), MEMORIES_TRANSITION_DURATION);
+  };
+
+  const handleContinueToClosing = () => {
+    if (scene !== 'memories') return;
+    setScene('to-closing');
+    sectionTimer.current = window.setTimeout(() => setScene('closing'), CLOSING_TRANSITION_DURATION);
+  };
+
   const isFloral = scene === 'bloom' || scene === 'final' || scene === 'to-childhood';
   const isChildhood = scene === 'to-childhood' || scene === 'childhood' || scene === 'to-wishes';
-  const isWishes = scene === 'to-wishes' || scene === 'wishes';
+  const isWishes = scene === 'to-wishes' || scene === 'wishes' || scene === 'to-memories';
+  const isMemories = scene === 'to-memories' || scene === 'memories' || scene === 'to-closing';
+  const isClosing = scene === 'to-closing' || scene === 'closing';
 
   return (
     <main className={`app app--${scene}`}>
@@ -834,7 +1139,23 @@ function App() {
         />
       )}
 
-      {isWishes && <WishSection entering={scene === 'to-wishes'} />}
+      {isWishes && (
+        <WishSection
+          entering={scene === 'to-wishes'}
+          leaving={scene === 'to-memories'}
+          onContinue={handleContinueToMemories}
+        />
+      )}
+
+      {isMemories && (
+        <MemoryFilmSection
+          entering={scene === 'to-memories'}
+          leaving={scene === 'to-closing'}
+          onContinue={handleContinueToClosing}
+        />
+      )}
+
+      {isClosing && <ClosingLetterSection entering={scene === 'to-closing'} />}
 
       {isFloral && <FloralScene leaving={scene === 'to-childhood'} />}
 
@@ -842,7 +1163,19 @@ function App() {
         <section className={`message-card ${scene === 'to-childhood' ? 'message-card--leaving' : ''}`}>
           <span className="message-card__kicker">for you, today</span>
           <h1>On your special day,<br />there is something<br />I want to show you.</h1>
-          <button className="start-button" type="button" onClick={handleStart}>Start <span>→</span></button>
+          <button className="start-button" type="button" onClick={handleStart}>
+            <span className="start-button__copy">
+              <small>chapter one</small>
+              <strong>The Journey That Made You</strong>
+            </span>
+            <span className="start-button__arrow" aria-hidden="true">
+              <svg viewBox="0 0 32 32" focusable="false">
+                <circle cx="7" cy="16" r="1.5" />
+                <path d="M9 16h15" />
+                <path d="m18.5 9.5 6.5 6.5-6.5 6.5" />
+              </svg>
+            </span>
+          </button>
         </section>
       )}
 
@@ -852,6 +1185,13 @@ function App() {
         preload="metadata"
         playsInline
         onLoadedMetadata={(event) => setSongDuration(event.currentTarget.duration || 94)}
+      />
+      <audio
+        ref={memoryAudioRef}
+        src={memorySong}
+        preload="auto"
+        playsInline
+        loop
       />
     </main>
   );
