@@ -15,6 +15,7 @@ import withMommy from '../biography/with mommy.jpeg';
 import withSister from '../biography/with sister.jpeg';
 import withSisterGrown from '../biography/with sister grown.jpeg';
 import birthdayTwentyFive from '../biography/25 birthday.jpeg';
+import finalBirthdayPhoto from '../C2409246.jpg';
 import childhoodSong from '../biography/Still Held by Grace.mp3';
 import wishEvaDaniel from '../wish/WhatsApp Video 2026-10-09 at 12.38.27.mp4';
 import wishDaddy from '../wish/WhatsApp Video 2026-10-15 at 16.18.25.mp4';
@@ -920,6 +921,29 @@ function WishSection({ entering = false, leaving = false, onContinue }) {
   );
 }
 
+function FinalBirthdayNote() {
+  return (
+    <section className="final-note" aria-label="Final birthday note">
+      <div className="final-note__glow" aria-hidden="true" />
+      <div className="final-note__card">
+        <span className="final-note__eyebrow">chapter four · today</span>
+        <div className="final-note__photo-wrap">
+          <span className="final-note__spark" aria-hidden="true">✦</span>
+          <img className="final-note__photo" src={finalBirthdayPhoto} alt="A birthday portrait of you" />
+        </div>
+        <div className="final-note__copy">
+          <p className="final-note__kicker">Happy birthday, sayang.</p>
+          <p>Terima kasih sudah tumbuh menjadi dirimu yang sekarang.<br />
+            Aku harap di tahun ini kamu selalu dikelilingi banyak bahagia,<br className="final-note__desktop-break" />
+            hal-hal baik, dan hati yang tenang.</p>
+        </div>
+        <div className="final-note__divider" aria-hidden="true"><span>♡</span></div>
+        <p className="final-note__signature"><span>with love,</span> William</p>
+      </div>
+    </section>
+  );
+}
+
 function PasswordDots({ length, error }) {
   return (
       <div className={`password-dots ${error ? 'password-dots--error' : ''}`} aria-label={`${length} of ${BIRTHDAY_PASSWORD.length} digits entered`}>
@@ -1079,6 +1103,16 @@ function App() {
     sectionTimer.current = window.setTimeout(() => setScene('memories'), MEMORIES_TRANSITION_DURATION);
   };
 
+  const handleMemoryAudioEnded = () => {
+    window.cancelAnimationFrame(memoryAudioFadeFrame.current);
+    if (memoryAudioRef.current) {
+      memoryAudioRef.current.pause();
+      memoryAudioRef.current.currentTime = 0;
+      memoryAudioRef.current.volume = .42;
+    }
+    setScene('final-note');
+  };
+
   const isFloral = scene === 'bloom' || scene === 'final' || scene === 'to-childhood';
   const isChildhood = scene === 'to-childhood' || scene === 'childhood' || scene === 'to-wishes';
   const isWishes = scene === 'to-wishes' || scene === 'wishes' || scene === 'to-memories';
@@ -1138,6 +1172,8 @@ function App() {
 
       {isMemories && <MemoryFilmSection entering={scene === 'to-memories'} />}
 
+      {scene === 'final-note' && <FinalBirthdayNote />}
+
       {isFloral && <FloralScene leaving={scene === 'to-childhood'} />}
 
       {(scene === 'final' || scene === 'to-childhood') && (
@@ -1172,7 +1208,7 @@ function App() {
         ref={memoryAudioRef}
         preload="auto"
         playsInline
-        loop
+        onEnded={handleMemoryAudioEnded}
       >
         <source src={memorySong} type="audio/mpeg" />
       </audio>
