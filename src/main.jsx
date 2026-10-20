@@ -36,7 +36,7 @@ import memorySong from '../withMe/web/backsound.mp3';
 const memoryImageModules = import.meta.glob('../withMe/web/*.{jpg,jpeg,png,webp}', { eager: true, import: 'default' });
 
 const BIRTHDAY_PASSWORD = import.meta.env.VITE_BIRTHDAY_PASSWORD || '211001';
-const AUTO_UNLOCK = import.meta.env.VITE_AUTO_UNLOCK === 'true';
+const AUTO_UNLOCK = import.meta.env.AUTO_UNLOCK === 'true';
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'delete', '0', 'enter'];
 const BLOOM_START_DELAY = 950;
 const MESSAGE_REVEAL_DELAY = 3900;
